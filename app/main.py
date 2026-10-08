@@ -59,3 +59,29 @@ def read_task(task_id: int, con: sqlite3.Connection = Depends(get_endpoint_conne
         raise HTTPException(status_code=404, detail="Task not found")
 
     return dict(row)
+
+@app.put("/tasks/{task_id}", response_model=Task)
+def update_task(task_id: int, task: TaskCreate, con: sqlite3.Connection = Depends(get_endpoint_connection)):
+    cur = con.cursor()
+
+    try:
+        cur.execute(
+            "UPDATE Task SET name = ?, description = ?, status = ? WHERE id = ?",
+            (task.name, task.description, task.status, task_id)
+        )
+
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        con.commit()
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=409, detail="Task with this name already exists")
+
+    dict_response = {
+        "id": task_id,
+        "name": task.name,
+        "description": task.description,
+        "status": task.status
+    }
+    
+    return dict_response
