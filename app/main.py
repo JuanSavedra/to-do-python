@@ -36,3 +36,15 @@ def create_task(task: TaskCreate, con: sqlite3.Connection = Depends(get_endpoint
     }
 
     return dict_response
+
+@app.get("/tasks", response_model=list[Task])
+def read_tasks(con: sqlite3.Connection = Depends(get_endpoint_connection)):
+    cur = con.cursor()
+    cur.execute("SELECT id, name, description, status FROM Task ORDER BY id ASC")
+    rows = cur.fetchall()
+
+    tasks = []
+    for row in rows:
+        tasks.append(dict(row))
+
+    return tasks
