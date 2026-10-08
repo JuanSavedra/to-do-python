@@ -48,3 +48,14 @@ def read_tasks(con: sqlite3.Connection = Depends(get_endpoint_connection)):
         tasks.append(dict(row))
 
     return tasks
+
+@app.get("/tasks/{task_id}", response_model=Task)
+def read_task(task_id: int, con: sqlite3.Connection = Depends(get_endpoint_connection)):
+    cur = con.cursor()
+    cur.execute("SELECT id, name, description, status FROM Task WHERE id = ?", (task_id,))
+    row = cur.fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    return dict(row)
