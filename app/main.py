@@ -85,3 +85,13 @@ def update_task(task_id: int, task: TaskCreate, con: sqlite3.Connection = Depend
     }
     
     return dict_response
+
+@app.delete("/tasks/{task_id}", status_code=204)
+def delete_task(task_id: int, con: sqlite3.Connection = Depends(get_endpoint_connection)):
+    cur = con.cursor()
+    cur.execute("DELETE FROM Task WHERE id = ?", (task_id,))
+
+    if cur.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    con.commit()
